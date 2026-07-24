@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nudge — Weekly Summary Prototype</title>
+<style>
+  :root {
+    --bg: #F5F6F4;
+    --card: #FFFFFF;
+    --ink: #1C2320;
+    --ink-soft: #5B655F;
+    --accent: #0F9D6F;
+    --accent-soft: #E4F5EC;
+    --warn: #E8734A;
+    --warn-soft: #FDEDE5;
+    --border: #E7E9E5;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+    min-height: 100vh;
+  }
+  .stage {
+    width: 100%;
+    max-width: 420px;
+  }
+  .stage-label {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .screen {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- EMAIL SCREEN ---------- */
+  .email-shell {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .email-meta {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .email-meta .from { color: var(--ink); font-weight: 600; }
+  .email-subject {
+    padding: 18px 20px 4px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .email-body {
+    padding: 8px 20px 24px;
+  }
+  .email-body p { line-height: 1.5; color: var(--ink-soft); font-size: 14px; }
+  .email-highlight {
+    background: var(--accent-soft);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+  }
+  .email-highlight .stat {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .email-highlight .stat-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .cta-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .cta-btn:hover { opacity: 0.92; }
+  .cta-btn:active { transform: scale(0.98); }
+  .email-footer {
+    font-size: 11px;
+    color: #9AA39D;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------- APP SCREEN (phone frame) ---------- */
+  .phone {
+    background: #0B0F0D;
+    border-radius: 40px;
+    padding: 14px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+  }
+  .phone-inner {
+    background: var(--bg);
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+  .app-topbar {
+    padding: 18px 20px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .app-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  .app-content {
+    padding: 4px 18px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .greeting {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 4px 0 2px;
+  }
+  .greeting-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .card-label.nudge { color: var(--warn); }
+  .card-label.goal { color: #6B5FD6; }
+
+  .insight-amount {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .insight-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+  .insight-compare {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--warn-soft);
+    color: var(--warn);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+
+  .nudge-question {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .action-btn {
+    width: 100%;
+    background: var(--ink);
+    color: white;
+    border: none;
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.1s ease;
+  }
+  .action-btn:hover { opacity: 0.9; }
+  .action-btn:active { transform: scale(0.98); }
+  .action-btn.dismiss {
+    background: transparent;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 8px;
+  }
+
+  .nudge-result {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .nudge-result.show { display: block; animation: fadeIn 0.3s ease; }
+  .nudge-result .confirm-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .checkmark {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .limit-bar-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .limit-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 6px;
+    width: 0%;
+    transition: width 0.6s ease;
+  }
+  .limit-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .projection-note {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+  .projection-note b { color: var(--ink); }
+
+  .goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .goal-name { font-size: 15px; font-weight: 700; }
+  .goal-target { font-size: 12px; color: var(--ink-soft); }
+  .goal-bar-track {
+    height: 10px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .goal-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #6B5FD6, #8F7CF0);
+    width: 0%;
+    transition: width 0.8s ease 0.1s;
+  }
+  .goal-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .goal-stats .this-week {
+    color: #6B5FD6;
+    font-weight: 700;
+  }
+
+  .replay {
+    text-align: center;
+    margin-top: 18px;
+  }
+  .replay button {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- SCREEN 1: EMAIL -->
+  <div class="screen active" id="screen-email">
+    <div class="stage-label">Inbox</div>
+    <div class="email-shell">
+      <div class="email-meta">
+        <div class="from">Nudge</div>
+        <div>Your week at Nudge — food delivery jumped, and your goal moved</div>
+      </div>
+      <div class="email-subject">👋 Here's where your money went this week</div>
+      <div class="email-body">
+        <p>Hi Jordan — quick look at your week before you dive in.</p>
+        <div class="email-highlight">
+          <div class="stat">$164</div>
+          <div class="stat-label">spent on food delivery — about 3x your usual weekly average</div>
+        </div>
+        <p>We also have one suggestion for it, and an update on your Emergency Fund goal waiting inside.</p>
+        <button class="cta-btn" onclick="goTo('screen-app')">See your full breakdown →</button>
+      </div>
+      <div class="email-footer">Nudge · Weekly Summary · You're getting this because you have a Nudge account</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: APP -->
+  <div class="screen" id="screen-app">
+    <div class="stage-label">Nudge App</div>
+    <div class="phone">
+      <div class="phone-inner">
+        <div class="app-topbar">
+          <button class="back-btn" onclick="goTo('screen-email')">‹ Back to email</button>
+          <div class="app-title">This Week</div>
+          <div style="width:70px"></div>
+        </div>
+        <div class="app-content">
+          <div class="greeting">Welcome back, Jordan</div>
+          <div class="greeting-sub">Here's what happened while you were away</div>
+
+          <!-- Top Spending Insight -->
+          <div class="card">
+            <div class="card-label">Top Insight</div>
+            <div class="insight-amount">$164 on food delivery</div>
+            <div class="insight-desc">Across 6 orders this week — mostly Thu–Sat evenings. Your usual weekly average is $54.</div>
+            <div class="insight-compare">▲ 3x your average</div>
+          </div>
+
+          <!-- Contextual Nudge -->
+          <div class="card" id="nudge-card">
+            <div class="card-label nudge">One Thing To Try</div>
+            <div class="nudge-question">Want to cap food delivery at $60/week so it doesn't creep back up?</div>
+            <button class="action-btn" id="nudge-action-btn" onclick="applyNudge()">Set a $60/week limit</button>
+            <button class="action-btn dismiss" onclick="dismissNudge()" id="dismiss-btn">Not right now</button>
+
+            <div class="nudge-result" id="nudge-result">
+              <div class="confirm-line"><span class="checkmark">✓</span> Limit set for Food Delivery</div>
+              <div class="limit-bar-track"><div class="limit-bar-fill" id="limit-bar"></div></div>
+              <div class="limit-bar-labels">
+                <span>$0</span>
+                <span id="limit-current">$164 spent this week</span>
+                <span>$60/wk limit</span>
+              </div>
+              <div class="projection-note">We'll alert you if you're about to go over. Sticking to this could free up roughly <b>$416/month</b> — enough to hit your Emergency Fund goal about <b>6 weeks sooner</b>.</div>
+            </div>
+          </div>
+
+          <!-- Savings Goal Progress -->
+          <div class="card">
+            <div class="card-label goal">Savings Goal</div>
+            <div class="goal-header">
+              <div class="goal-name">Emergency Fund</div>
+              <div class="goal-target">$340 of $1,000</div>
+            </div>
+            <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-bar"></div></div>
+            <div class="goal-stats">
+              <span>34% there</span>
+              <span class="this-week">+$25 this week</span>
+            </div>
+          </div>
+
+          <div class="replay">
+            <button onclick="resetPrototype()">↺ Replay prototype</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-app') {
+      setTimeout(() => {
+        document.getElementById('goal-bar').style.width = '34%';
+      }, 150);
+    }
+  }
+
+  function applyNudge() {
+    document.getElementById('nudge-action-btn').style.display = 'none';
+    document.getElementById('dismiss-btn').style.display = 'none';
+    const result = document.getElementById('nudge-result');
+    result.classList.add('show');
+    setTimeout(() => {
+      // 164 vs 60 limit, capped visually at 100%
+      document.getElementById('limit-bar').style.width = '100%';
+      document.getElementById('limit-bar').style.background = '#E8734A';
+    }, 100);
+  }
+
+  function dismissNudge() {
+    const card = document.getElementById('nudge-card');
+    card.style.opacity = '0.5';
+    document.getElementById('nudge-action-btn').disabled = true;
+    document.getElementById('dismiss-btn').textContent = 'Dismissed — we\'ll check back next week';
+    document.getElementById('dismiss-btn').disabled = true;
+  }
+
+  function resetPrototype() {
+    goTo('screen-email');
+    document.getElementById('nudge-action-btn').style.display = 'block';
+    document.getElementById('dismiss-btn').style.display = 'block';
+    document.getElementById('dismiss-btn').disabled = false;
+    document.getElementById('dismiss-btn').textContent = 'Not right now';
+    document.getElementById('nudge-card').style.opacity = '1';
+    document.getElementById('nudge-result').classList.remove('show');
+    document.getElementById('limit-bar').style.width = '0%';
+    document.getElementById('limit-bar').style.background = '';
+  }
+</script>
+
+</body>
+</html>
